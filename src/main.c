@@ -7,7 +7,7 @@
 
 int
 main(int argc, char** argv) {
-    hash_map_t* map = hash_map_create(1);
+    hash_map_t* map = hash_map_create(30);
 
 
     uint32_t age = 39;

@@ -6,27 +6,65 @@ calculate_hash(char* key, uint32_t size) {
     return murmurhash(key, (uint32_t)strlen(key), 0) % size;
 }
 
+static entry_t*
+create_entry(char* key, void* value) {
+	// FIXME: Error handling
+	entry_t* entry = malloc(sizeof(entry_t));
+	entry->key = key;
+	entry->value = value;
+	entry->probe_distance = 0;
+	return entry;
+}
+
+static hash_map_t*
+robin_hood_insert(hash_map_t* hash_map, entry_t* entry) {
+	entry_t* testee = entry;
+	uint32_t index = calculate_hash(entry->key, hash_map->capacity);
+
+	for (uint32_t i = index; i < hash_map->capacity; i = (i + 1) % hash_map->capacity) {
+		if (hash_map->entries[i] == AVAILABLE) {
+			hash_map->entries[i] = testee;
+			hash_map->count++;
+			break;
+		} else if (strcmp(hash_map->entries[i]->key, entry->key) == 0) {
+			hash_map->entries[i]->value = entry->value;
+			break;
+		} else if (hash_map->entries[i]->probe_distance < testee->probe_distance) {
+			entry_t* tmp = hash_map->entries[i];
+			hash_map->entries[i] = testee;
+			testee = tmp;
+			continue;
+		} else {
+			testee->probe_distance++;
+			continue;
+		}
+	}
+
+	return hash_map;
+}
 
 static hash_map_t*
 hash_map_resize(hash_map_t* hash_map) {
 	uint32_t new_capacity = hash_map->capacity * GROW_FACTOR;
-	entry_t** new_entries = calloc(new_capacity, sizeof(entry_t));
+	entry_t** new_entries = calloc(hash_map->capacity, sizeof(entry_t));
 	if (new_entries == NULL) {
 		perror(RESIZE_ERROR);
 		return NULL;
 	}
 
+	entry_t** legacy_entries = hash_map->entries;
+
+	hash_map->entries = new_entries;
+	hash_map->capacity = new_capacity;
+
 	for (uint32_t i = 0; i < hash_map->capacity; i++) {
-		entry_t* entry = hash_map->entries[i];
-		if (entry != AVAILABLE) {
-			uint32_t hash = calculate_hash(entry->key, new_capacity);
-			new_entries[hash] = entry;
+		if (legacy_entries[i] != AVAILABLE) {
+			legacy_entries[i]->probe_distance = 0;
+			robin_hood_insert(hash_map, legacy_entries[i]);
 		}
 	}
 
-	free(hash_map->entries);
-	hash_map->capacity = new_capacity;
-	hash_map->entries = new_entries;
+	free(legacy_entries);
 
 	return hash_map;
 }
@@ -56,7 +94,8 @@ hash_map_print(hash_map_t* hash_map, bool full) {
 			continue;
 		}
 
-		printf("%d: %s -> %p\n", i, hash_map->entries[i]->key, hash_map->entries[i]->value);
+		entry_t* entry = hash_map->entries[i];
+		printf("%d: %s -> %p ; PD: %d \n", i, entry->key, entry->value, entry->probe_distance);
 	}
 }
 
@@ -84,22 +123,7 @@ hash_map_insert_entry(hash_map_t* hash_map, char* key, void* value) {
 		hash_map = resized_map;
 	}
 
-	uint32_t index = calculate_hash(key, hash_map->capacity);
-	for (uint32_t i = index; i < hash_map->capacity; i = (i + 1) % hash_map->capacity) {
-		if (hash_map->entries[i] == AVAILABLE) {
-			entry_t* entry = malloc(sizeof(entry_t));
-			entry->key = key;
-			entry->value = value;
-			hash_map->entries[i] = entry;
-			hash_map->count++;
-			break;
-		} else if (strcmp(hash_map->entries[i]->key, key) == 0) {
-			hash_map->entries[i]->value = value;
-			break;
-		} else {
-			continue;
-		}
-	}
+	robin_hood_insert(hash_map, create_entry(key, value));
 }
 
 void*
