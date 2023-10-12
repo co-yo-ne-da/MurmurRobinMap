@@ -12,6 +12,9 @@
 #define GROW_FACTOR 2
 #define CRITICAL_LOAD_FACTOR 0.8
 
+#define ALLOC_ERROR "ALLOC_ERROR: Failed to allocate memory for hash_map"
+#define RESIZE_ERROR "RESIZE_ERROR: Failed to allocated memory for new entries"
+
 
 typedef struct Entry {
     char* key;

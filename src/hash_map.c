@@ -11,6 +11,10 @@ static hash_map_t*
 hash_map_resize(hash_map_t* hash_map) {
 	uint32_t new_capacity = hash_map->capacity * GROW_FACTOR;
 	entry_t** new_entries = calloc(new_capacity, sizeof(entry_t));
+	if (new_entries == NULL) {
+		perror(RESIZE_ERROR);
+		return NULL;
+	}
 
 	for (uint32_t i = 0; i < hash_map->capacity; i++) {
 		entry_t* entry = hash_map->entries[i];
@@ -32,7 +36,7 @@ hash_map_t*
 hash_map_create(uint32_t initial_capacity) {
 	hash_map_t* map = malloc(sizeof(hash_map_t));
 	if (map == NULL) {
-		perror("Failed to allocated memory for hash_map");
+		perror(ALLOC_ERROR);
 		return NULL;
 	}
 
@@ -72,11 +76,15 @@ void
 hash_map_insert_entry(hash_map_t* hash_map, char* key, void* value) {
 	float load_factor = (float)hash_map->count / (float)hash_map->capacity;
 	if (CRITICAL_LOAD_FACTOR <= load_factor) {
-		hash_map = hash_map_resize(hash_map);
+		hash_map_t* resized_map = hash_map_resize(hash_map);
+		if (resized_map == NULL) {
+			return;
+		}
+
+		hash_map = resized_map;
 	}
 
 	uint32_t index = calculate_hash(key, hash_map->capacity);
-
 	for (uint32_t i = index; i < hash_map->capacity; i = (i + 1) % hash_map->capacity) {
 		if (hash_map->entries[i] == AVAILABLE) {
 			entry_t* entry = malloc(sizeof(entry_t));
