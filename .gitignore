@@ -1,3 +1,4 @@
 libs/
 bin/*
 obj/*
+src/main.c

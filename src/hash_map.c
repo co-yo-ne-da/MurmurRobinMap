@@ -6,16 +6,6 @@ calculate_hash(char* key, uint32_t size) {
     return murmurhash(key, (uint32_t)strlen(key), 0) % size;
 }
 
-static entry_t*
-create_entry(char* key, void* value) {
-	// FIXME: Error handling
-	entry_t* entry = malloc(sizeof(entry_t));
-	entry->key = key;
-	entry->value = value;
-	entry->probe_distance = 0;
-	return entry;
-}
-
 static hash_map_t*
 robin_hood_insert(hash_map_t* hash_map, entry_t* entry) {
 	entry_t* testee = entry;
@@ -33,6 +23,7 @@ robin_hood_insert(hash_map_t* hash_map, entry_t* entry) {
 			entry_t* tmp = hash_map->entries[i];
 			hash_map->entries[i] = testee;
 			testee = tmp;
+			testee->probe_distance = 0;
 			continue;
 		} else {
 			testee->probe_distance++;
@@ -46,10 +37,10 @@ robin_hood_insert(hash_map_t* hash_map, entry_t* entry) {
 static hash_map_t*
 hash_map_resize(hash_map_t* hash_map) {
 	uint32_t new_capacity = hash_map->capacity * GROW_FACTOR;
-	entry_t** new_entries = calloc(hash_map->capacity, sizeof(entry_t));
+	entry_t** new_entries = calloc(new_capacity, sizeof *new_entries);
 	if (new_entries == NULL) {
 		perror(RESIZE_ERROR);
-		return NULL;
+		exit(1);
 	}
 
 	entry_t** legacy_entries = hash_map->entries;
@@ -75,7 +66,7 @@ hash_map_create(uint32_t initial_capacity) {
 	hash_map_t* map = malloc(sizeof(hash_map_t));
 	if (map == NULL) {
 		perror(ALLOC_ERROR);
-		return NULL;
+		exit(1);
 	}
 
 	map->count = 0;
@@ -116,25 +107,40 @@ hash_map_insert_entry(hash_map_t* hash_map, char* key, void* value) {
 	float load_factor = (float)hash_map->count / (float)hash_map->capacity;
 	if (CRITICAL_LOAD_FACTOR <= load_factor) {
 		hash_map_t* resized_map = hash_map_resize(hash_map);
-		if (resized_map == NULL) {
-			return;
-		}
-
 		hash_map = resized_map;
 	}
 
-	robin_hood_insert(hash_map, create_entry(key, value));
+	entry_t* entry = malloc(sizeof *entry);
+	if (entry == NULL) {
+		perror(ALLOC_ERROR);
+		exit(1);
+	}
+
+	entry->key = key;
+	entry->value = value;
+	entry->probe_distance = 0;
+	robin_hood_insert(hash_map, entry);
 }
 
 void*
 hash_map_get_entry(hash_map_t* hash_map, char* key) {
 	uint32_t index = calculate_hash(key, hash_map->capacity);
+
 	for (uint32_t i = index; i < hash_map->capacity; i = (i + 1) % hash_map->capacity) {
+		if (hash_map->entries[i] == AVAILABLE) {
+			return NULL;
+		}
+
 		if (strcmp(hash_map->entries[i]->key, key) == 0) {
 			return hash_map->entries[i]->value;
-		} 
+		}
 	}
 
 	return NULL;
+}
+
+bool
+hash_map_has_entry(hash_map_t* hash_map, char* key) {
+	return hash_map_get_entry(hash_map, key) != NULL;
 }
 
