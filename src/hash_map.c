@@ -16,19 +16,22 @@ robin_hood_insert(hash_map_t* hash_map, entry_t* entry) {
 			hash_map->entries[i] = testee;
 			hash_map->count++;
 			break;
-		} else if (strcmp(hash_map->entries[i]->key, entry->key) == 0) {
+		} 
+
+		if (strcmp(hash_map->entries[i]->key, entry->key) == 0) {
 			hash_map->entries[i]->value = entry->value;
 			break;
-		} else if (hash_map->entries[i]->probe_distance < testee->probe_distance) {
+		} 
+
+		if (hash_map->entries[i]->probe_distance < testee->probe_distance) {
 			entry_t* tmp = hash_map->entries[i];
 			hash_map->entries[i] = testee;
 			testee = tmp;
 			testee->probe_distance = 0;
 			continue;
-		} else {
-			testee->probe_distance++;
-			continue;
-		}
+		} 
+
+		testee->probe_distance++;
 	}
 
 	return hash_map;
@@ -70,6 +73,24 @@ hash_map_resize(hash_map_t* hash_map) {
 	}
 
 	return hash_map;
+}
+
+
+static int32_t
+hash_map_find_index(hash_map_t* hash_map, char* key) {
+	uint32_t index = calculate_hash(key, hash_map->capacity);
+
+	for (int32_t i = index; i < hash_map->capacity; i = (i + 1) % hash_map->capacity) {
+		if (hash_map->entries[i] == AVAILABLE) {
+			return -1;
+		}
+
+		if (strcmp(hash_map->entries[i]->key, key) == 0) {
+			return i;
+		}
+	}
+
+	return -1;
 }
 
 
@@ -136,23 +157,35 @@ hash_map_insert_entry(hash_map_t* hash_map, char* key, void* value) {
 
 void*
 hash_map_get_entry(hash_map_t* hash_map, char* key) {
-	uint32_t index = calculate_hash(key, hash_map->capacity);
-
-	for (uint32_t i = index; i < hash_map->capacity; i = (i + 1) % hash_map->capacity) {
-		if (hash_map->entries[i] == AVAILABLE) {
-			return NULL;
-		}
-
-		if (strcmp(hash_map->entries[i]->key, key) == 0) {
-			return hash_map->entries[i]->value;
-		}
-	}
-
-	return NULL;
+	int32_t index = hash_map_find_index(hash_map, key);
+	return index > -1 ? hash_map->entries[index]->value : NULL;
 }
 
 bool
 hash_map_has_entry(hash_map_t* hash_map, char* key) {
-	return hash_map_get_entry(hash_map, key) != NULL;
+	return hash_map_find_index(hash_map, key) != -1;
+}
+
+bool
+hash_map_delete_entry(hash_map_t* hash_map, char* key) {
+	int32_t index = hash_map_find_index(hash_map, key);
+
+	if (index == -1) {
+		return false;
+	}
+
+	hash_map->entries[index] = AVAILABLE;
+
+	for (uint32_t i = (uint32_t)index + 1; i < hash_map->capacity; i = (i + 1) % hash_map->capacity) {
+		if (hash_map->entries[i] == AVAILABLE || hash_map->entries[i]->probe_distance == 0) break;
+
+		uint32_t ti = i == 0 ? hash_map->capacity - 1 : i - 1;
+		hash_map->entries[ti] = hash_map->entries[i];
+		hash_map->entries[ti]->probe_distance -= 1;
+
+		hash_map->entries[i] = AVAILABLE;
+	}
+
+	return true;
 }
 

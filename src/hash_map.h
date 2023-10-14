@@ -10,7 +10,7 @@
 
 #define AVAILABLE 0
 #define GROW_FACTOR 2
-#define CRITICAL_LOAD_FACTOR 0.8
+#define CRITICAL_LOAD_FACTOR 1
 
 #define ALLOC_ERROR "ALLOC_ERROR: Failed to allocate memory"
 #define RESIZE_ERROR "RESIZE_ERROR: Failed to resize hash_map"
@@ -41,7 +41,7 @@ hash_map_free(hash_map_t* hash_map);
 void
 hash_map_insert_entry(hash_map_t* hash_map, char* key, void* value);
 
-void
+bool
 hash_map_delete_entry(hash_map_t* hash_map, char* key);
 
 bool
