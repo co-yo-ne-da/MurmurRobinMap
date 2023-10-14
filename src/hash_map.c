@@ -39,10 +39,10 @@ robin_hood_insert(hash_map_t* hash_map, entry_t* entry) {
 
 static hash_map_t*
 hash_map_resize(hash_map_t* hash_map) {
-	uint32_t legacy_capacity = hash_map->capacity;
-	uint32_t new_capacity = legacy_capacity * GROW_FACTOR;
+	uint32_t new_capacity = hash_map->capacity * GROW_FACTOR;
+	uint32_t legacy_items_count = hash_map->count;
 
-	size_t legacy_mem_size = sizeof(entry_t*) * legacy_capacity;
+	size_t legacy_mem_size = sizeof(entry_t*) * legacy_items_count;
 	size_t new_mem_size = sizeof(entry_t*) * new_capacity; 
 
 	entry_t** legacy_entries = malloc(legacy_mem_size);
@@ -52,7 +52,14 @@ hash_map_resize(hash_map_t* hash_map) {
 		exit(1);
 	}
 
-	memcpy(legacy_entries, hash_map->entries, legacy_mem_size);
+	for (uint32_t i = 0, j = 0; i < hash_map->capacity && j < legacy_items_count; i++) {
+		if (hash_map->entries[i] != AVAILABLE) {
+			legacy_entries[j] = hash_map->entries[i];
+			legacy_entries[j]->probe_distance = 0;
+			j++;
+		}
+	}
+
 	entry_t** new_entries = realloc(hash_map->entries, new_mem_size);
 
 	if  (new_entries == NULL) {
@@ -62,16 +69,15 @@ hash_map_resize(hash_map_t* hash_map) {
 
 	memset(new_entries, AVAILABLE, new_capacity * sizeof(entry_t*));
 
+	hash_map->count = 0;
 	hash_map->entries = new_entries;
 	hash_map->capacity = new_capacity;
 
-	for (uint32_t i = 0; i < legacy_capacity; i++) {
-		if (legacy_entries[i] != AVAILABLE) {
-			legacy_entries[i]->probe_distance = 0;
-			robin_hood_insert(hash_map, legacy_entries[i]);
-		}
+	for (uint32_t i = 0; i < legacy_items_count; i++) {
+		robin_hood_insert(hash_map, legacy_entries[i]);
 	}
 
+	free(legacy_entries);
 	return hash_map;
 }
 
@@ -126,11 +132,12 @@ hash_map_print(hash_map_t* hash_map, bool full) {
 void
 hash_map_free(hash_map_t* hash_map) {
 	for (uint32_t i = 0; i < hash_map->capacity; i++) {
-		if (hash_map->entries[i] == AVAILABLE) {
+		if (hash_map->entries[i] != AVAILABLE) {
 			free(hash_map->entries[i]);
 		}
 	}
 
+	free(hash_map->entries);
 	free(hash_map);
 }
 
@@ -175,6 +182,7 @@ hash_map_delete_entry(hash_map_t* hash_map, char* key) {
 	}
 
 	hash_map->entries[index] = AVAILABLE;
+	hash_map->count--;
 
 	for (uint32_t i = (uint32_t)index + 1; i < hash_map->capacity; i = (i + 1) % hash_map->capacity) {
 		if (hash_map->entries[i] == AVAILABLE || hash_map->entries[i]->probe_distance == 0) break;
