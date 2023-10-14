@@ -36,26 +36,38 @@ robin_hood_insert(hash_map_t* hash_map, entry_t* entry) {
 
 static hash_map_t*
 hash_map_resize(hash_map_t* hash_map) {
-	uint32_t new_capacity = hash_map->capacity * GROW_FACTOR;
-	entry_t** new_entries = calloc(new_capacity, sizeof *new_entries);
-	if (new_entries == NULL) {
-		perror(RESIZE_ERROR);
+	uint32_t legacy_capacity = hash_map->capacity;
+	uint32_t new_capacity = legacy_capacity * GROW_FACTOR;
+
+	size_t legacy_mem_size = sizeof(entry_t*) * legacy_capacity;
+	size_t new_mem_size = sizeof(entry_t*) * new_capacity; 
+
+	entry_t** legacy_entries = malloc(legacy_mem_size);
+
+	if (legacy_entries == NULL) {
+		perror(ALLOC_ERROR);
 		exit(1);
 	}
 
-	entry_t** legacy_entries = hash_map->entries;
+	memcpy(legacy_entries, hash_map->entries, legacy_mem_size);
+	entry_t** new_entries = realloc(hash_map->entries, new_mem_size);
+
+	if  (new_entries == NULL) {
+		perror(ALLOC_ERROR);
+		exit(1);
+	}
+
+	memset(new_entries, AVAILABLE, new_capacity * sizeof(entry_t*));
 
 	hash_map->entries = new_entries;
 	hash_map->capacity = new_capacity;
 
-	for (uint32_t i = 0; i < hash_map->capacity; i++) {
+	for (uint32_t i = 0; i < legacy_capacity; i++) {
 		if (legacy_entries[i] != AVAILABLE) {
 			legacy_entries[i]->probe_distance = 0;
 			robin_hood_insert(hash_map, legacy_entries[i]);
 		}
 	}
-
-	free(legacy_entries);
 
 	return hash_map;
 }
