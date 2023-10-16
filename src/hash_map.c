@@ -1,7 +1,7 @@
 #include "hash_map.h"
 
 
-static uint32_t
+static inline uint32_t
 calculate_hash(char* key, uint32_t size) {
     return murmurhash(key, (uint32_t)strlen(key), 0) % size;
 }
@@ -60,7 +60,6 @@ hash_map_resize(hash_map_t* hash_map) {
 
 	free(legacy_entries);
 }
-
 
 static int32_t
 hash_map_find_index(hash_map_t* hash_map, char* key) {
@@ -121,7 +120,6 @@ hash_map_free(hash_map_t* hash_map) {
 	free(hash_map);
 }
 
-
 void
 hash_map_insert_entry(hash_map_t* hash_map, char* key, void* value) {
 	float load_factor = (float)hash_map->count / (float)hash_map->capacity;
@@ -151,7 +149,6 @@ bool
 hash_map_has_entry(hash_map_t* hash_map, char* key) {
 	return hash_map_find_index(hash_map, key) != -1;
 }
-
 
 /**
  * Deletes hash map entry.
