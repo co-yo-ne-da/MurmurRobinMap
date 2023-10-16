@@ -37,48 +37,28 @@ robin_hood_insert(hash_map_t* hash_map, entry_t* entry) {
 	return hash_map;
 }
 
-static hash_map_t*
+static void
 hash_map_resize(hash_map_t* hash_map) {
-	uint32_t new_capacity = hash_map->capacity * GROW_FACTOR;
-	uint32_t legacy_items_count = hash_map->count;
+	uint32_t legacy_capacity = hash_map->capacity;
+	uint32_t new_capacity = legacy_capacity * GROW_FACTOR;
 
-	size_t legacy_mem_size = sizeof(entry_t*) * legacy_items_count;
-	size_t new_mem_size = sizeof(entry_t*) * new_capacity; 
-
-	entry_t** legacy_entries = malloc(legacy_mem_size);
-
-	if (legacy_entries == NULL) {
+	entry_t** new_entries = calloc(new_capacity, sizeof(entry_t*));
+	if (new_entries == NULL) {
 		perror(ALLOC_ERROR);
 		exit(1);
 	}
 
-	for (uint32_t i = 0, j = 0; i < hash_map->capacity && j < legacy_items_count; i++) {
-		if (hash_map->entries[i] != AVAILABLE) {
-			legacy_entries[j] = hash_map->entries[i];
-			legacy_entries[j]->probe_distance = 0;
-			j++;
-		}
-	}
-
-	entry_t** new_entries = realloc(hash_map->entries, new_mem_size);
-
-	if  (new_entries == NULL) {
-		perror(ALLOC_ERROR);
-		exit(1);
-	}
-
-	memset(new_entries, AVAILABLE, new_capacity * sizeof(entry_t*));
-
-	hash_map->count = 0;
+	entry_t** legacy_entries = hash_map->entries;
 	hash_map->entries = new_entries;
 	hash_map->capacity = new_capacity;
+	hash_map->count = 0;
 
-	for (uint32_t i = 0; i < legacy_items_count; i++) {
-		robin_hood_insert(hash_map, legacy_entries[i]);
+	for (uint32_t i = 0; i < legacy_capacity; i++) {
+		if (legacy_entries[i] != AVAILABLE) 
+			robin_hood_insert(hash_map, legacy_entries[i]);
 	}
 
 	free(legacy_entries);
-	return hash_map;
 }
 
 
@@ -110,15 +90,15 @@ hash_map_create(uint32_t initial_capacity) {
 
 	map->count = 0;
 	map->capacity = initial_capacity;
-	map->entries = calloc(initial_capacity, sizeof(entry_t));
+	map->entries = calloc(initial_capacity, sizeof(entry_t*));
 	return map;
 }
 
 void
-hash_map_print(hash_map_t* hash_map, bool full) {
+hash_map_print(hash_map_t* hash_map, bool print_full_table) {
 	for (uint32_t i = 0; i < hash_map->capacity; i++) {
 		if (hash_map->entries[i] == AVAILABLE) {
-			if (full) {
+			if (print_full_table) {
 				printf("%d: [EMPTY SLOT]\n", i);
 			}
 			continue;
@@ -146,8 +126,7 @@ void
 hash_map_insert_entry(hash_map_t* hash_map, char* key, void* value) {
 	float load_factor = (float)hash_map->count / (float)hash_map->capacity;
 	if (CRITICAL_LOAD_FACTOR <= load_factor) {
-		hash_map_t* resized_map = hash_map_resize(hash_map);
-		hash_map = resized_map;
+		hash_map_resize(hash_map);
 	}
 
 	entry_t* entry = malloc(sizeof *entry);
@@ -173,6 +152,14 @@ hash_map_has_entry(hash_map_t* hash_map, char* key) {
 	return hash_map_find_index(hash_map, key) != -1;
 }
 
+
+/**
+ * Deletes hash map entry.
+ * If entry has been successfully deleted,
+ * returns true, otherwise - false.
+ * The function also returns false if the entry
+ * has not been found in a hash map.
+ */
 bool
 hash_map_delete_entry(hash_map_t* hash_map, char* key) {
 	int32_t index = hash_map_find_index(hash_map, key);
@@ -181,16 +168,25 @@ hash_map_delete_entry(hash_map_t* hash_map, char* key) {
 		return false;
 	}
 
+	// Getting pointer to the found entry and freeing the memory.
+	entry_t* target_entry = hash_map->entries[index];
+	free(target_entry);
+
+	// Making the slot available again.
 	hash_map->entries[index] = AVAILABLE;
+	// Decrement elements count.
 	hash_map->count--;
 
+	/* Moving right side neighbours to the left one by one until either:
+	* 	- an available slot met
+	* 	- the probe distance of the given element is 0.
+	*/
 	for (uint32_t i = (uint32_t)index + 1; i < hash_map->capacity; i = (i + 1) % hash_map->capacity) {
 		if (hash_map->entries[i] == AVAILABLE || hash_map->entries[i]->probe_distance == 0) break;
 
 		uint32_t ti = i == 0 ? hash_map->capacity - 1 : i - 1;
 		hash_map->entries[ti] = hash_map->entries[i];
 		hash_map->entries[ti]->probe_distance -= 1;
-
 		hash_map->entries[i] = AVAILABLE;
 	}
 
