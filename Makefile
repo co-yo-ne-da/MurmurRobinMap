@@ -1,31 +1,45 @@
+LIBRARY_NAME = hashmap
+LIBRARY_VERSION = 0.1.0
+
 CC=clang
 
-MURMUR = -I/usr/local/lib/ -lmurmurhash
-
+MURMUR = -I/usr/local/lib/
 CFLAGS = -Wall -O3 --std=c99 $(MURMUR)
 
 SRC_DIR=src
 OBJ_DIR=obj
 BIN_DIR=bin
+DIST_DIR=dist
+
+LIBRARY_FILE = $(DIST_DIR)/lib$(LIBRARY_NAME).a
 
 SOURCES=$(wildcard $(SRC_DIR)/*.c)
 OBJECTS=$(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(SOURCES))
 
-BIN = $(BIN_DIR)/main
 
-all: $(BIN)
+all: $(LIBRARY_FILE)
 
-$(BIN): $(OBJECTS)
-	$(CC) $(CFLAGS) $(OBJECTS) -o $@
+$(LIBRARY_FILE): $(OBJECTS)
+	ar rcs $@ $^
 
-$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c $(OBJ_DIR) $(DIST_DIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 
+$(DIST_DIR):
+	mkdir $(DIST_DIR)
+
+$(OBJ_DIR):
+	mkdir $(OBJ_DIR)
+
+install:
+	cp $(LIBRARY_FILE) /usr/local/lib/
+	cp $(SRC_DIR)/$(LIBRARY_NAME).h /usr/local/lib/
+
+uninstall:
+	rm -f /usr/local/lib/lib$(LIBRARY_NAME).a
+	rm -f /usr/local/lib/$(LIBRARY_NAME).h
+
 clean:
-	rm -r $(BIN_DIR)/* $(OBJ_DIR)/*
+	rm -rf $(DIST_DIR) $(OBJ_DIR)
 
-run:
-	$(BIN)
-
-asm:
-	otool -tvV $(BIN)
+.PHONY: all clean dist install uninstall

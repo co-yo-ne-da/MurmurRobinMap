@@ -1,6 +1,9 @@
-#include "hash_map.h"
+#include "hashmap.h"
 
-
+/**
+* Calculates hash using MurMurHash3 algorithm.
+* 
+*/
 static inline uint32_t
 calculate_hash(char* key, uint32_t size) {
     return murmurhash(key, (uint32_t)strlen(key), 0) % size;
