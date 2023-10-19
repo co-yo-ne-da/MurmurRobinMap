@@ -1,6 +1,6 @@
 CC = gcc
 CFLAGS = -Wall -O3 --std=c99 -I/opt/local/include/ -I/usr/local/include/ -I$(SRC_DIR)
-LDFLAGS = -L/opt/local/lib/ -L/usr/local/lib/ -lcheck -lm -lpthread -lmurmurhash
+LDFLAGS = -L/opt/local/lib/ -L/usr/local/lib/ -lcheck -lm -lpthread -lsubunit -lmurmurhash
 
 SRC_DIR = ../src
 TEST_DIR = .
