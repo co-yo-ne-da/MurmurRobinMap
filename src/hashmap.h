@@ -33,9 +33,6 @@ hash_map_t*
 hash_map_create(uint32_t initial_capacity);
 
 void 
-hash_map_print(hash_map_t* hash_map, bool full);
-
-void 
 hash_map_free(hash_map_t* hash_map);
 
 void

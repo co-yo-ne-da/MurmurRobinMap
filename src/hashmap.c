@@ -97,21 +97,6 @@ hash_map_create(uint32_t initial_capacity) {
 }
 
 void
-hash_map_print(hash_map_t* hash_map, bool print_full_table) {
-	for (uint32_t i = 0; i < hash_map->capacity; i++) {
-		if (hash_map->entries[i] == AVAILABLE) {
-			if (print_full_table) {
-				printf("%d: [EMPTY SLOT]\n", i);
-			}
-			continue;
-		}
-
-		entry_t* entry = hash_map->entries[i];
-		printf("%d: %s -> %p ; PD: %d \n", i, entry->key, entry->value, entry->probe_distance);
-	}
-}
-
-void
 hash_map_free(hash_map_t* hash_map) {
 	for (uint32_t i = 0; i < hash_map->capacity; i++) {
 		if (hash_map->entries[i] != AVAILABLE) {
