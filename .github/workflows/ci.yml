@@ -18,6 +18,10 @@ jobs:
         cd mmlib
         make
         sudo make install
+    - name: Install test dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install check 
     - name: Compile and run tests
       run: |
         cd tests
