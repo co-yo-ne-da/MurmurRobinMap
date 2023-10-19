@@ -106,6 +106,8 @@ hash_map_free(hash_map_t* hash_map) {
 
 	free(hash_map->entries);
 	free(hash_map);
+
+	hash_map->entries = NULL;
 }
 
 void
