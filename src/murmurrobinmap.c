@@ -1,4 +1,4 @@
-#include "hashmap.h"
+#include "murmurrobinmap.h"
 
 /**
 * Calculates hash using MurMurHash3 algorithm.

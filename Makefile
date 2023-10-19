@@ -1,17 +1,17 @@
-LIBRARY_NAME = hashmap
+LIBRARY_NAME = murmurrobinmap
+OUT_LIBRARY_NAME = lib$(LIBRARY_NAME)
 LIBRARY_VERSION = 0.1.0
 
 CC=clang
 
-MURMUR = -I/usr/local/lib/
+MURMUR = -I/opt/local/include/
 CFLAGS = -Wall -O3 --std=c99 $(MURMUR)
-
 SRC_DIR=src
 OBJ_DIR=obj
 BIN_DIR=bin
 DIST_DIR=dist
 
-LIBRARY_FILE = $(DIST_DIR)/lib$(LIBRARY_NAME).a
+LIBRARY_FILE = $(DIST_DIR)/$(OUT_LIBRARY_NAME).a
 
 SOURCES=$(wildcard $(SRC_DIR)/*.c)
 OBJECTS=$(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(SOURCES))
@@ -32,12 +32,12 @@ $(OBJ_DIR):
 	mkdir $(OBJ_DIR)
 
 install:
-	cp $(LIBRARY_FILE) /usr/local/lib/
-	cp $(SRC_DIR)/$(LIBRARY_NAME).h /usr/local/lib/
+	cp $(LIBRARY_FILE) /opt/local/lib/
+	cp $(SRC_DIR)/$(LIBRARY_NAME).h /opt/local/include/
 
 uninstall:
-	rm -f /usr/local/lib/lib$(LIBRARY_NAME).a
-	rm -f /usr/local/lib/$(LIBRARY_NAME).h
+	rm -f /opt/local/lib/$(LIBRARY_NAME).a
+	rm -f /opt/local/include/$(LIBRARY_NAME).h
 
 clean:
 	rm -rf $(DIST_DIR) $(OBJ_DIR)

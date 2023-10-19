@@ -1,0 +1,24 @@
+name: CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Install dependencies
+      run: |
+        git clone https://github.com/jwerle/murmurhash.c mmlib
+        cd mmlib
+        make
+        sudo make install
+    - name: Compile and run tests
+      run: |
+        cd tests
+        make

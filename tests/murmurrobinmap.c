@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <check.h>
-#include <hashmap.h>
+#include <murmurrobinmap.h>
 
 START_TEST(test_hash_map_free) {
     hash_map_t* map = hash_map_create(10);
