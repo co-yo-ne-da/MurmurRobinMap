@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <check.h>
+#include <string.h>
 #include <murmurrobinmap.h>
 
 START_TEST(test_hash_map_free) {
@@ -50,6 +51,26 @@ START_TEST(test_hash_map_has_entry_unhappy) {
 END_TEST
 
 
+START_TEST(test_murmurhash_hashing) {
+    char* test_cases[2] = {
+        "Hello",
+        "world"
+    };
+
+    uint32_t results[2] = {
+        316307400,
+        4220927227
+    };
+
+    for (size_t i = 0; i < 2; i++) {
+        char* key = test_cases[i];
+        uint32_t hash = murmurhash3(key, strlen(key), 0);
+        ck_assert_int_eq(hash, results[i]);
+    }
+}
+END_TEST
+
+
 int
 main(void) {
     Suite *suite = suite_create("Hash map suite");
@@ -59,6 +80,9 @@ main(void) {
     tcase_add_test(tc, test_hash_map_free);
     tcase_add_test(tc, test_hash_map_has_entry_happy);
     tcase_add_test(tc, test_hash_map_has_entry_unhappy);
+
+    tcase_add_test(tc, test_murmurhash_hashing);
+
     suite_add_tcase(suite, tc);
 
     SRunner *runner = srunner_create(suite);

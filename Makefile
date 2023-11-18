@@ -4,8 +4,7 @@ LIBRARY_VERSION = 0.1.0
 
 CC=clang
 
-MURMUR = -I/opt/local/include/
-CFLAGS = -Wall -O3 --std=c99 $(MURMUR)
+CFLAGS = -Wall -O3 --std=c99
 SRC_DIR=src
 OBJ_DIR=obj
 BIN_DIR=bin

@@ -6,7 +6,6 @@
 #include <string.h>
 #include <inttypes.h>
 #include <stdbool.h>
-#include <murmurhash.h>
 
 #define AVAILABLE 0
 #define GROW_FACTOR 2
@@ -14,7 +13,6 @@
 
 #define ALLOC_ERROR "ALLOC_ERROR: Failed to allocate memory"
 #define RESIZE_ERROR "RESIZE_ERROR: Failed to resize hash_map"
-
 
 typedef struct Entry {
     char* key;
@@ -28,6 +26,9 @@ typedef struct HashMap {
     entry_t** entries;
 } hash_map_t;
 
+
+uint32_t
+murmurhash3(char* key, uint32_t len, uint32_t seed);
 
 hash_map_t* 
 hash_map_create(uint32_t initial_capacity);

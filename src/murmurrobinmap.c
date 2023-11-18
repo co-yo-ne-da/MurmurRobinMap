@@ -6,6 +6,7 @@
  * This static inline function is used to scramble a 32-bit input value 'k' for use in the MurmurHash3 algorithm.
  * It applies a series of bitwise and arithmetic operations to mix and transform the input value.
  */
+
 static inline uint32_t
 murmur_32_scramble(uint32_t k) {
     k *= 0xcc9e2d51;
@@ -16,37 +17,46 @@ murmur_32_scramble(uint32_t k) {
 
 
 /*
- * This static inline function calculates a 32-bit hash value (hash code) for a given 'key'
- * using the MurmurHash3 algorithm. It processes the input key in chunks of 4 bytes at a time.
- */
-static inline uint32_t
+ * This inline function calculates a 32-bit hash value (hash code) for a given 'key'
+ * using the MurmurHash3 algorithm.
+ */ 
+
+inline uint32_t
 murmurhash3(char* key, uint32_t len, uint32_t seed) {
-    uint32_t k;
-    uint32_t h = seed;
+    if (key == NULL || len == 0) return 0;
+    uint32_t hash = seed;
 
-    for (uint32_t i = len >> 2; i; i--) {
-        memcpy(&k, key, sizeof(uint32_t));
-        key += sizeof(uint32_t);
-        h ^= murmur_32_scramble(k);
-        h = (13 << h) | (h >> 19);
-        h = h * 5 + 0xe6546b64;
+    const size_t nblocks = len / sizeof(uint32_t);
+    const uint32_t* blocks = (uint32_t*) key;
+    const uint8_t* tail = (uint8_t*) (key + nblocks * 4);
+
+    for (size_t i = 0; i < nblocks; i++) {
+        hash ^= murmur_32_scramble(*blocks++);
+        hash = (hash << 13) | (hash >> 19);
+        hash = (hash * 5) + 0xe6546b64;
     }
 
-    k = 0;
-    for (size_t i = len & 3; i; i--) {
-        k <<= 8;
-        k |= key[i - 1];
+    uint32_t k = 0;
+    switch (len & 3) {
+        case 3:
+            k ^= tail[2] << 16;
+        case 2:
+            k ^= tail[1] << 8;
+        case 1:
+            k ^= tail[0];
+            hash ^= murmur_32_scramble(k);
     }
 
-    h ^= murmur_32_scramble(k);
-    h ^= len;
-    h ^= h >> 16;
-    h *= 0x85ebca6b;
-    h ^= h >> 13;
-    h *= 0xc2b2ae35;
-    h ^= h >> 16;
-    return h;
+    hash ^= len;
+    hash ^= hash >> 16;
+    hash *= 0x85ebca6b;
+    hash ^= (hash >> 13);
+    hash *= 0xc2b2ae35;
+    hash ^= (hash >> 16);
+
+    return hash;
 }
+
 
 
 /*
