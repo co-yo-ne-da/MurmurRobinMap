@@ -78,6 +78,7 @@ robin_hood_insert(hash_map_t* hash_map, entry_t* entry) {
     return hash_map;
 }
 
+
 static void
 hash_map_resize(hash_map_t* hash_map) {
     uint32_t legacy_capacity = hash_map->capacity;
@@ -101,6 +102,7 @@ hash_map_resize(hash_map_t* hash_map) {
 
     free(legacy_entries);
 }
+
 
 static int32_t
 hash_map_find_index(hash_map_t* hash_map, char* key) {
@@ -169,16 +171,19 @@ hash_map_insert_entry(hash_map_t* hash_map, char* key, void* value) {
     robin_hood_insert(hash_map, entry);
 }
 
+
 void*
 hash_map_get_entry(hash_map_t* hash_map, char* key) {
     int32_t index = hash_map_find_index(hash_map, key);
     return index > -1 ? hash_map->entries[index]->value : NULL;
 }
 
+
 bool
 hash_map_has_entry(hash_map_t* hash_map, char* key) {
     return hash_map_find_index(hash_map, key) != -1;
 }
+
 
 bool
 hash_map_delete_entry(hash_map_t* hash_map, char* key) {

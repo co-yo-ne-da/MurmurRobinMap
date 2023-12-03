@@ -4,8 +4,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <inttypes.h>
 #include <stdbool.h>
+#include <inttypes.h>
+
 
 #define AVAILABLE 0
 #define GROW_FACTOR 2
