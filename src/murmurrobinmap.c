@@ -47,7 +47,7 @@ murmurhash3(char* key, uint32_t len, uint32_t seed) {
 }
 
 
-static hash_map_t*
+static inline hash_map_t*
 robin_hood_insert(hash_map_t* hash_map, entry_t* entry) {
     entry_t* testee = entry;
     uint32_t index = murmurhash3(entry->key, (uint32_t)strlen(entry->key), 0) % hash_map->capacity;
@@ -79,7 +79,7 @@ robin_hood_insert(hash_map_t* hash_map, entry_t* entry) {
 }
 
 
-static void
+static inline void
 hash_map_resize(hash_map_t* hash_map) {
     uint32_t legacy_capacity = hash_map->capacity;
     uint32_t new_capacity = legacy_capacity * GROW_FACTOR;
@@ -104,18 +104,12 @@ hash_map_resize(hash_map_t* hash_map) {
 }
 
 
-static int32_t
+static inline int32_t
 hash_map_find_index(hash_map_t* hash_map, char* key) {
     uint32_t index = murmurhash3(key, (uint32_t)strlen(key), 0) % hash_map->capacity;
-
     for (int32_t i = index; i < hash_map->capacity; i = (i + 1) % hash_map->capacity) {
-        if (hash_map->entries[i] == AVAILABLE) {
-            return -1;
-        }
-
-        if (strcmp(hash_map->entries[i]->key, key) == 0) {
-            return i;
-        }
+        if (hash_map->entries[i] == AVAILABLE) return -1;
+        if (strcmp(hash_map->entries[i]->key, key) == 0) return i;
     }
 
     return -1;
@@ -140,9 +134,7 @@ hash_map_create(uint32_t initial_capacity) {
 void
 hash_map_free(hash_map_t* hash_map) {
     for (uint32_t i = 0; i < hash_map->capacity; i++) {
-        if (hash_map->entries[i] != AVAILABLE) {
-            free(hash_map->entries[i]);
-        }
+        if (hash_map->entries[i] != AVAILABLE) free(hash_map->entries[i]);
     }
 
     free(hash_map->entries);
@@ -155,9 +147,7 @@ hash_map_free(hash_map_t* hash_map) {
 void
 hash_map_insert_entry(hash_map_t* hash_map, char* key, void* value) {
     float load_factor = (float)hash_map->count / (float)hash_map->capacity;
-    if (CRITICAL_LOAD_FACTOR <= load_factor) {
-        hash_map_resize(hash_map);
-    }
+    if (CRITICAL_LOAD_FACTOR <= load_factor) hash_map_resize(hash_map);
 
     entry_t* entry = malloc(sizeof *entry);
     if (entry == NULL) {
@@ -188,10 +178,7 @@ hash_map_has_entry(hash_map_t* hash_map, char* key) {
 bool
 hash_map_delete_entry(hash_map_t* hash_map, char* key) {
     int32_t index = hash_map_find_index(hash_map, key);
-
-    if (index == -1) {
-        return false;
-    }
+    if (index == -1)  return false;
 
     entry_t* target_entry = hash_map->entries[index];
     free(target_entry);
