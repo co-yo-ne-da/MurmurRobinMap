@@ -30,8 +30,18 @@ START_TEST(test_hash_map_has_entry_happy) {
     ck_assert_ptr_nonnull(map);
 
     hash_map_insert_entry(map, "hello", "world");
+    hash_map_insert_entry(map, "another_key", "42");
+    hash_map_insert_entry(map, "null", NULL);
 
-    uint8_t result = (uint8_t)hash_map_has_entry(map, "hello");
+    uint8_t result;
+
+    result = (uint8_t)hash_map_has_entry(map, "hello");
+    ck_assert_uint_eq(result, 1);
+
+    result = (uint8_t)hash_map_has_entry(map, "another_key");
+    ck_assert_uint_eq(result, 1);
+
+    result = (uint8_t)hash_map_has_entry(map, "null");
     ck_assert_uint_eq(result, 1);
 
     hash_map_free(map);
@@ -45,6 +55,48 @@ START_TEST(test_hash_map_has_entry_unhappy) {
 
     uint8_t result = (uint8_t)hash_map_has_entry(map, "unknown");
     ck_assert_uint_eq(result, 0);
+
+    hash_map_free(map);
+}
+END_TEST
+
+
+START_TEST(test_hash_map_get_entry_happy) {
+    hash_map_t* map = hash_map_create(10);
+    ck_assert_ptr_nonnull(map);
+
+    hash_map_insert_entry(map, "hello", "world");
+
+    char* result = hash_map_get_entry(map, "hello");
+    ck_assert_str_eq(result, "world");
+
+    uint8_t* answer = malloc(sizeof(uint8_t));
+    *answer = 42;
+
+    hash_map_insert_entry(map, "answer", answer);
+
+    uint8_t* result_uint = hash_map_get_entry(map, "answer");
+    ck_assert_uint_eq(*result_uint, 42);
+    free(answer);
+
+    hash_map_insert_entry(map, "null", NULL);
+    void* result_null = hash_map_get_entry(map, "null");
+    ck_assert_ptr_null(result_null);
+
+    hash_map_free(map);
+}
+END_TEST
+
+
+START_TEST(test_hash_map_get_entry_unhappy) {
+    hash_map_t* map = hash_map_create(10);
+    ck_assert_ptr_nonnull(map);
+
+    hash_map_insert_entry(map, "hello", "world");
+    hash_map_insert_entry(map, "another", "entry");
+
+    char* result = hash_map_get_entry(map, "unknown");
+    ck_assert_ptr_null(result);
 
     hash_map_free(map);
 }
@@ -80,6 +132,8 @@ main(void) {
     tcase_add_test(tc, test_hash_map_free);
     tcase_add_test(tc, test_hash_map_has_entry_happy);
     tcase_add_test(tc, test_hash_map_has_entry_unhappy);
+    tcase_add_test(tc, test_hash_map_get_entry_happy);
+    tcase_add_test(tc, test_hash_map_get_entry_unhappy);
 
     tcase_add_test(tc, test_murmurhash_hashing);
 
