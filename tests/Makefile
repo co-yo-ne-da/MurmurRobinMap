@@ -12,9 +12,7 @@ endif
 SRC_DIR = ../src
 TEST_DIR = .
 
-SRC_FILES = $(wildcard $(SRC_DIR)/*.c)
 TEST_FILES = $(wildcard $(TEST_DIR)/*.c)
-OBJ_FILES = $(patsubst $(SRC_DIR)/%.c,$(SRC_DIR)/%.o,$(SRC_FILES))
 TEST_RUNNER = $(TEST_DIR)/check_tests.c
 TEST_EXECUTABLE = test_suite
 
@@ -22,7 +20,7 @@ check: $(TEST_EXECUTABLE)
 	./$(TEST_EXECUTABLE)
 
 
-$(TEST_EXECUTABLE): $(TEST_FILES) $(SRC_FILES)
+$(TEST_EXECUTABLE): $(TEST_FILES)
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
 .PHONY: clean

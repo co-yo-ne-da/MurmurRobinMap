@@ -1,7 +1,8 @@
 #include <stdlib.h>
 #include <check.h>
 #include <string.h>
-#include <murmurrobinmap.h>
+#include <murmurrobinmap.c>
+
 
 START_TEST(test_hash_map_free) {
     hash_map_t* map = hash_map_create(10);
@@ -19,6 +20,22 @@ START_TEST(test_hash_map_create) {
     ck_assert_ptr_nonnull(map->entries);
     ck_assert_uint_eq(map->capacity, 10);
     ck_assert_uint_eq(map->count, 0);
+
+    hash_map_free(map);
+}
+END_TEST
+
+
+START_TEST(test_hash_map_insert_entry_happy) {
+    hash_map_t* map = hash_map_create(10);
+    ck_assert_ptr_nonnull(map);
+    ck_assert_uint_eq(map->count, 0);
+
+    hash_map_insert_entry(map, "hello", "world");
+    ck_assert_uint_eq(map->count, 1);
+
+    hash_map_insert_entry(map, "another", "entry");
+    ck_assert_uint_eq(map->count, 2);
 
     hash_map_free(map);
 }
@@ -134,6 +151,7 @@ main(void) {
     tcase_add_test(tc, test_hash_map_has_entry_unhappy);
     tcase_add_test(tc, test_hash_map_get_entry_happy);
     tcase_add_test(tc, test_hash_map_get_entry_unhappy);
+    tcase_add_test(tc, test_hash_map_insert_entry_happy);
 
     tcase_add_test(tc, test_murmurhash_hashing);
 
