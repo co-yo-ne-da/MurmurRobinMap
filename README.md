@@ -7,10 +7,20 @@ Dependency free Hash map implementation using Robin Hood probing and Murmurhash3
 
 This is still work in progress, use with care.
 
+## References
+
+### Robin hood probing
+ - https://www.cs.cornell.edu/courses/JavaAndDS/files/hashing_RobinHood.pdf
+ - https://thenumb.at/Hashtables/#robin-hood-linear-probing
+
+### Murmurhash3
+  - https://en.wikipedia.org/wiki/MurmurHash
+
+
 
 ## Installation:
 
-### Prerequisits
+### Prerequisites
 
 - clang v14+ (support for other C compilers to be added)
 
