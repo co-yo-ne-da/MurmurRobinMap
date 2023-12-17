@@ -91,6 +91,7 @@ START_TEST(test_robin_hood_insert_probe_distance) {
 
     entry_t* entry = create_entry("test11", "hello");
     entry_t* test_entry = create_entry("test12", "world");
+    entry_t* test_entry2 = create_entry("test16", "test");
 
     robin_hood_insert(map, entry);
     uint32_t index = hash_map_find_index(map, "test11");
@@ -100,6 +101,10 @@ START_TEST(test_robin_hood_insert_probe_distance) {
     robin_hood_insert(map, test_entry);
     ck_assert_str_eq((char*)map->entries[(index + 1) % capacity]->value, "world");
     ck_assert_uint_eq(map->entries[(index + 1) % capacity]->probe_distance, 1);
+
+    robin_hood_insert(map, test_entry2);
+    ck_assert_str_eq((char*)map->entries[(index + 2) % capacity]->value, "test");
+    ck_assert_uint_eq(map->entries[(index + 2) % capacity]->probe_distance, 2);
 }
 END_TEST
 
