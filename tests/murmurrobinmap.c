@@ -4,6 +4,16 @@
 #include <murmurrobinmap.c>
 
 
+entry_t*
+create_entry(char* key, void* value) {
+    entry_t* entry = malloc(sizeof *entry);
+    entry->key = key;
+    entry->value = value;
+    entry->probe_distance = 0;
+    return entry;
+}
+
+
 START_TEST(test_hash_map_free) {
     hash_map_t* map = hash_map_create(10);
     ck_assert_ptr_nonnull(map);
@@ -26,7 +36,7 @@ START_TEST(test_hash_map_create) {
 END_TEST
 
 
-START_TEST(test_hash_map_insert_entry_happy) {
+START_TEST(test_hash_map_insert_entry_upates_count) {
     hash_map_t* map = hash_map_create(10);
     ck_assert_ptr_nonnull(map);
     ck_assert_uint_eq(map->count, 0);
@@ -38,6 +48,58 @@ START_TEST(test_hash_map_insert_entry_happy) {
     ck_assert_uint_eq(map->count, 2);
 
     hash_map_free(map);
+}
+END_TEST
+
+
+START_TEST(test_hash_map_insert_entry_adds_an_entry) {
+    hash_map_t* map = hash_map_create(10);
+    ck_assert_ptr_nonnull(map);
+    ck_assert_uint_eq(map->count, 0);
+
+    hash_map_insert_entry(map, "hello", "world");
+    
+    uint32_t index = hash_map_find_index(map, "hello");
+    entry_t* entry = map->entries[index];
+    ck_assert_ptr_nonnull(entry);
+    ck_assert_str_eq((char*)entry->value, "world");
+
+    hash_map_free(map);
+}
+END_TEST
+
+
+START_TEST(test_hash_map_resize) {
+    uint32_t capacity = 10;
+    hash_map_t* map = hash_map_create(capacity);
+    ck_assert_ptr_nonnull(map);
+    ck_assert_uint_eq(map->capacity, capacity);
+
+    hash_map_resize(map);
+
+    ck_assert_uint_eq(map->capacity, capacity * GROW_FACTOR);
+
+    hash_map_free(map);
+}
+END_TEST
+
+
+START_TEST(test_robin_hood_insert_probe_distance) {
+    uint32_t capacity = 10;
+    hash_map_t* map = hash_map_create(capacity);
+    ck_assert_ptr_nonnull(map);
+
+    entry_t* entry = create_entry("test11", "hello");
+    entry_t* test_entry = create_entry("test12", "world");
+
+    robin_hood_insert(map, entry);
+    uint32_t index = hash_map_find_index(map, "test11");
+    ck_assert_str_eq((char*)map->entries[index]->value, "hello");
+    ck_assert_uint_eq(map->entries[index]->probe_distance, 0);
+
+    robin_hood_insert(map, test_entry);
+    ck_assert_str_eq((char*)map->entries[(index + 1) % capacity]->value, "world");
+    ck_assert_uint_eq(map->entries[(index + 1) % capacity]->probe_distance, 1);
 }
 END_TEST
 
@@ -151,7 +213,10 @@ main(void) {
     tcase_add_test(tc, test_hash_map_has_entry_unhappy);
     tcase_add_test(tc, test_hash_map_get_entry_happy);
     tcase_add_test(tc, test_hash_map_get_entry_unhappy);
-    tcase_add_test(tc, test_hash_map_insert_entry_happy);
+    tcase_add_test(tc, test_hash_map_insert_entry_upates_count);
+    tcase_add_test(tc, test_hash_map_insert_entry_adds_an_entry);
+    tcase_add_test(tc, test_hash_map_resize);
+    tcase_add_test(tc, test_robin_hood_insert_probe_distance);
 
     tcase_add_test(tc, test_murmurhash_hashing);
 
