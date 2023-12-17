@@ -45,13 +45,13 @@ Example
 
 int
 main(int argc, char** argv) {
-	hash_map_t* hash_map = hash_map_create(100);
+  hash_map_t* hash_map = hash_map_create(100);
 
-	printf("Created hash map with capacity %d\n", hash_map->capacity);
-	// Created hash map with capacity 100;
+  printf("Created hash map with capacity %d\n", hash_map->capacity);
+  // Created hash map with capacity 100;
 
-	hash_map_free(hash_map);
-	return 0;
+  hash_map_free(hash_map);
+  return 0;
 }
 
 ```
@@ -83,20 +83,20 @@ Example
 
 
 typedef struct {
-	uint32_t answer;
+  uint32_t answer;
 } my_struct;
 
 int
 main(int argc, char** argv) {
-	hash_map_t* hash_map = hash_map_create(100);
+  hash_map_t* hash_map = hash_map_create(100);
 
-	my_struct* s = malloc(sizeof(my_struct));
-	s->answer = 42;
+  my_struct* s = malloc(sizeof(my_struct));
+  s->answer = 42;
 
-	hash_map_insert_entry(hash_map, "answer", my_struct);
+  hash_map_insert_entry(hash_map, "answer", my_struct);
 
-	hash_map_free(hash_map);
-	return 0;
+  hash_map_free(hash_map);
+  return 0;
 }
 
 ```
@@ -127,29 +127,29 @@ Example
 
 
 typedef struct {
-	uint32_t answer;
+  uint32_t answer;
 } my_struct;
 
 int
 main(int argc, char** argv) {
-	hash_map_t* hash_map = hash_map_create(100);
+  hash_map_t* hash_map = hash_map_create(100);
 
-	my_struct* s = malloc(sizeof(my_struct));
-	s->answer = 42;
+  my_struct* s = malloc(sizeof(my_struct));
+  s->answer = 42;
 
-	hash_map_insert_entry(hash_map, "answer", my_struct);
+  hash_map_insert_entry(hash_map, "answer", my_struct);
 
-	...
+  ...
 
-	my_struct* s2 = hash_map_get_entry(hash_map, "answer");
-	if (s2 != NULL) {
-		printf("This is an answer on ultimate question of life, the universe, and everything: %d\n", s2->answer);
-		// This is an answer on ultimate question of life, the universe, and everything: 42
-	}
+  my_struct* s2 = hash_map_get_entry(hash_map, "answer");
+  if (s2 != NULL) {
+    printf("This is an answer on ultimate question of life, the universe, and everything: %d\n", s2->answer);
+    // This is an answer on ultimate question of life, the universe, and everything: 42
+  }
 
-	free(s);
-	hash_map_free(hash_map);
-	return 0;
+  free(s);
+  hash_map_free(hash_map);
+  return 0;
 }
 
 ```
