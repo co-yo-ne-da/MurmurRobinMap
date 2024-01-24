@@ -23,11 +23,21 @@ This is still work in progress, use with care.
 ### Prerequisites
 
 - clang v14+ (support for other C compilers to be added)
+- gcc
 
 ### Building from source:
 
+##### With clang (default)
+
 ```c
-sudo make && make install
+make && sudo make install
+
+```
+
+##### With gcc
+
+```c
+CC=gcc make && sudo make install
 
 ```
 

@@ -2,18 +2,18 @@ LIBRARY_NAME = murmurrobinmap
 OUT_LIBRARY_NAME = lib$(LIBRARY_NAME)
 LIBRARY_VERSION = 0.1.0
 
-CC=clang
+CC ?= clang
 
 CFLAGS = -Wall -O3 --std=c99
-SRC_DIR=src
-OBJ_DIR=obj
-BIN_DIR=bin
-DIST_DIR=dist
+SRC_DIR = src
+OBJ_DIR = obj
+BIN_DIR = bin
+DIST_DIR = dist
 
 LIBRARY_FILE = $(DIST_DIR)/$(OUT_LIBRARY_NAME).a
 
-SOURCES=$(wildcard $(SRC_DIR)/*.c)
-OBJECTS=$(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(SOURCES))
+SOURCES = $(wildcard $(SRC_DIR)/*.c)
+OBJECTS = $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(SOURCES))
 
 
 all: $(LIBRARY_FILE)
