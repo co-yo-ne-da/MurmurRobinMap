@@ -1,5 +1,5 @@
-#ifndef _HASH_MAP_
-#define _HASH_MAP_
+#ifndef _mmr_map_
+#define _mmr_map_
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -13,7 +13,7 @@
 #define CRITICAL_LOAD_FACTOR 0.8
 
 #define ALLOC_ERROR "ALLOC_ERROR: Failed to allocate memory"
-#define RESIZE_ERROR "RESIZE_ERROR: Failed to resize hash_map"
+#define RESIZE_ERROR "RESIZE_ERROR: Failed to resize mmr_map"
 
 typedef struct Entry {
     char* key;
@@ -25,29 +25,29 @@ typedef struct HashMap {
     uint32_t count;
     uint32_t capacity;
     entry_t** entries;
-} hash_map_t;
+} mmr_map_t;
 
 
 uint32_t
 murmurhash3(char* key, uint32_t len, uint32_t seed);
 
-hash_map_t* 
-hash_map_create(uint32_t initial_capacity);
+mmr_map_t* 
+mmr_map_create(uint32_t initial_capacity);
 
 void 
-hash_map_free(hash_map_t* hash_map);
+mmr_map_free(mmr_map_t* mmr_map);
 
 void
-hash_map_insert_entry(hash_map_t* hash_map, char* key, void* value);
+mmr_map_insert_entry(mmr_map_t* mmr_map, char* key, void* value);
 
 bool
-hash_map_delete_entry(hash_map_t* hash_map, char* key);
+mmr_map_delete_entry(mmr_map_t* mmr_map, char* key);
 
 bool
-hash_map_has_entry(hash_map_t* hash_map, char* key);
+mmr_map_has_entry(mmr_map_t* mmr_map, char* key);
 
 void*
-hash_map_get_entry(hash_map_t* hash_map, char* key);
+mmr_map_get_entry(mmr_map_t* mmr_map, char* key);
 
 
 #endif
