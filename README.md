@@ -22,8 +22,7 @@ This is still work in progress, use with care.
 
 ### Prerequisites
 
-- clang v14+ (support for other C compilers to be added)
-- gcc
+- clang v14+ or gcc
 
 ### Building from source:
 
@@ -54,7 +53,7 @@ mmr_map_create(uint32_t initial_capacity);
 
 Usage
 ```c
-mmr_map_t* mmr_map = mmr_map_create(100);
+mmr_map_t* hash_map = mmr_map_create(100);
 
 ```
 
@@ -67,10 +66,10 @@ int
 main(int argc, char** argv) {
   mmr_map_t* hash_map = mmr_map_create(100);
 
-  printf("Created hash map with capacity %d\n", mmr_map->capacity);
+  printf("Created hash map with capacity %d\n", hash_map->capacity);
   // Created hash map with capacity 100;
 
-  mmr_map_free(mmr_map);
+  mmr_map_free(hash_map);
   return 0;
 }
 
