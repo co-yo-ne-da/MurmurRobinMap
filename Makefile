@@ -10,7 +10,14 @@ OBJ_DIR = obj
 BIN_DIR = bin
 DIST_DIR = dist
 
-LIBRARY_FILE = $(DIST_DIR)/$(OUT_LIBRARY_NAME).a
+ifdef SHARED
+	LIBCMD = clang -shared -o
+	CFLAGS += -fPIC
+	LIBRARY_FILE = $(DIST_DIR)/$(OUT_LIBRARY_NAME).so
+else
+	LIBCMD = ar rcs
+	LIBRARY_FILE = $(DIST_DIR)/$(OUT_LIBRARY_NAME).a
+endif
 
 SOURCES = $(wildcard $(SRC_DIR)/*.c)
 OBJECTS = $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(SOURCES))
@@ -19,7 +26,7 @@ OBJECTS = $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(SOURCES))
 all: $(LIBRARY_FILE)
 
 $(LIBRARY_FILE): $(OBJECTS)
-	ar rcs $@ $^
+	${LIBCMD} $@ $^
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c $(OBJ_DIR) $(DIST_DIR)
 	$(CC) $(CFLAGS) -c $< -o $@
@@ -40,5 +47,10 @@ uninstall:
 
 clean:
 	rm -rf $(DIST_DIR) $(OBJ_DIR)
+
+help:
+	@echo "Usage: "
+	@echo "By default 'make' command produces a static library."
+	@echo "Use 'SHARED=1 make' to change the target to dynamic .so lib".
 
 .PHONY: all clean dist install uninstall
