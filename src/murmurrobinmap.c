@@ -51,7 +51,6 @@ static inline mmr_map_t*
 robin_hood_insert(mmr_map_t* mmr_map, entry_t* entry) {
     entry_t* testee = entry;
     uint32_t index = murmurhash3(entry->key, (uint32_t)strlen(entry->key), 0) % mmr_map->capacity;
-
     for (uint32_t i = index; i < mmr_map->capacity; i = (i + 1) % mmr_map->capacity) {
         if (mmr_map->entries[i] == AVAILABLE) {
             mmr_map->entries[i] = testee;
@@ -59,7 +58,8 @@ robin_hood_insert(mmr_map_t* mmr_map, entry_t* entry) {
             break;
         }
 
-        if (strcmp(mmr_map->entries[i]->key, entry->key) == 0) {
+        // On the next iteration a key meets itself?.
+        if (strcmp(mmr_map->entries[i]->key, testee->key) == 0) {
             mmr_map->entries[i]->value = entry->value;
             break;
         } 

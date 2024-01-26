@@ -84,6 +84,27 @@ START_TEST(test_mmr_map_resize) {
 END_TEST
 
 
+START_TEST(test_mmr_map_autoresize) {
+    uint32_t capacity = 10;
+    mmr_map_t* map = mmr_map_create(capacity);
+    ck_assert_ptr_nonnull(map);
+    ck_assert_uint_eq(map->capacity, capacity);
+
+    char* template = "dgy63jfgew4qafgkdsfskfj";
+    for (size_t i = 0; i < 10; i++) {
+        char* key = malloc(i * sizeof(char));
+        strncpy(key, template, i);
+        mmr_map_insert_entry(map, key, key);
+    }
+
+    ck_assert_uint_eq(map->count, 10);
+    ck_assert_uint_eq(map->capacity, capacity * GROW_FACTOR);
+
+    mmr_map_free(map);
+}
+END_TEST
+
+
 START_TEST(test_robin_hood_insert_probe_distance) {
     uint32_t capacity = 10;
     mmr_map_t* map = mmr_map_create(capacity);
@@ -92,6 +113,20 @@ START_TEST(test_robin_hood_insert_probe_distance) {
     entry_t* entry = create_entry("test11", "hello");
     entry_t* test_entry = create_entry("test12", "world");
     entry_t* test_entry2 = create_entry("test16", "test");
+
+    // Make sure test keys produce the same hash value
+    ck_assert_uint_eq(
+        murmurhash3("test11", 6, 0) % capacity,
+        murmurhash3("test12", 6, 0) % capacity
+    );
+    ck_assert_uint_eq(
+        murmurhash3("test12", 6, 0) % capacity,
+        murmurhash3("test16", 6, 0) % capacity
+    );
+    ck_assert_uint_eq(
+        murmurhash3("test11", 6, 0) % capacity,
+        murmurhash3("test16", 6, 0) % capacity
+    );
 
     robin_hood_insert(map, entry);
     uint32_t index = mmr_map_find_index(map, "test11");
@@ -221,6 +256,7 @@ main(void) {
     tcase_add_test(tc, test_mmr_map_insert_entry_upates_count);
     tcase_add_test(tc, test_mmr_map_insert_entry_adds_an_entry);
     tcase_add_test(tc, test_mmr_map_resize);
+    tcase_add_test(tc, test_mmr_map_autoresize);
     tcase_add_test(tc, test_robin_hood_insert_probe_distance);
 
     tcase_add_test(tc, test_murmurhash_hashing);
