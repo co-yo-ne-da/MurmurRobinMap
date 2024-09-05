@@ -18,13 +18,13 @@
 typedef struct Entry {
     char* key;
     void* value;
-    uint32_t probe_distance;
+    size_t probe_distance;
 } entry_t;
 
 typedef struct HashMap {
     uint32_t count;
     uint32_t capacity;
-    entry_t** entries;
+    entry_t* entries;
 } mmr_map_t;
 
 

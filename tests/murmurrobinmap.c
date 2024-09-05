@@ -60,9 +60,8 @@ START_TEST(test_mmr_map_insert_entry_adds_an_entry) {
     mmr_map_insert_entry(map, "hello", "world");
     
     uint32_t index = mmr_map_find_index(map, "hello");
-    entry_t* entry = map->entries[index];
-    ck_assert_ptr_nonnull(entry);
-    ck_assert_str_eq((char*)entry->value, "world");
+    entry_t entry = map->entries[index];
+    ck_assert_str_eq((char*)entry.value, "world");
 
     mmr_map_free(map);
 }
@@ -128,18 +127,22 @@ START_TEST(test_robin_hood_insert_probe_distance) {
         murmurhash3("test16", 6, 0) % capacity
     );
 
-    robin_hood_insert(map, entry);
+    robin_hood_insert(map, entry->key, entry->value);
     uint32_t index = mmr_map_find_index(map, "test11");
-    ck_assert_str_eq((char*)map->entries[index]->value, "hello");
-    ck_assert_uint_eq(map->entries[index]->probe_distance, 0);
+    ck_assert_str_eq((char*)map->entries[index].value, "hello");
+    ck_assert_uint_eq(map->entries[index].probe_distance, 0);
 
-    robin_hood_insert(map, test_entry);
-    ck_assert_str_eq((char*)map->entries[(index + 1) % capacity]->value, "world");
-    ck_assert_uint_eq(map->entries[(index + 1) % capacity]->probe_distance, 1);
+    robin_hood_insert(map, test_entry->key, test_entry->value);
+    uint32_t index1 = mmr_map_find_index(map, "test12");
+    ck_assert_uint_eq(index1, index + 1);
+    ck_assert_str_eq((char*)map->entries[index1].value, "world");
+    ck_assert_uint_eq(map->entries[index1].probe_distance, 1);
 
-    robin_hood_insert(map, test_entry2);
-    ck_assert_str_eq((char*)map->entries[(index + 2) % capacity]->value, "test");
-    ck_assert_uint_eq(map->entries[(index + 2) % capacity]->probe_distance, 2);
+    robin_hood_insert(map, test_entry2->key, test_entry2->value);
+    uint32_t index2 = mmr_map_find_index(map, "test16");
+    ck_assert_uint_eq(index2, index1 + 1);
+    ck_assert_str_eq((char*)map->entries[index2].value, "test");
+    ck_assert_uint_eq(map->entries[index2].probe_distance, 2);
 }
 END_TEST
 
@@ -223,14 +226,24 @@ END_TEST
 
 
 START_TEST(test_murmurhash_hashing) {
-    char* test_cases[2] = {
+    char* test_cases[7] = {
+        "a",
         "Hello",
-        "world"
+        "world",
+        "MurmurHash3",
+        "big random string",
+        "1234567890",
+        "int main(int argc, char** argv)"
     };
 
-    uint32_t results[2] = {
+    uint32_t results[7] = {
+        1009084850,
         316307400,
-        4220927227
+        4220927227,
+        1473193682,
+        162831409,
+        839148365,
+        2389356776
     };
 
     for (size_t i = 0; i < 2; i++) {
