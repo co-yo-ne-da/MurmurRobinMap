@@ -18,6 +18,8 @@ jobs:
         sudo apt-get install check 
     - name: Compile and run tests
       run: |
+        make clean
+        make
         cd tests
         make clean
         make
