@@ -150,6 +150,7 @@ mmr_map_create(uint32_t initial_capacity) {
 void
 mmr_map_free(mmr_map_t* mmr_map) {
     free(mmr_map->entries);
+    mmr_map->entries = NULL;
     free(mmr_map);
 }
 
