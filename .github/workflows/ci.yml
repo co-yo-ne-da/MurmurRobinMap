@@ -15,11 +15,11 @@ jobs:
     - name: Install test dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install check 
+        sudo apt-get install check clang
     - name: Compile and run tests
       run: |
-        make clean
-        make
+        CC=clang make clean
+        CC=clang make
         cd tests
-        make clean
-        make
+        CC=clang make clean
+        CC=clang make
