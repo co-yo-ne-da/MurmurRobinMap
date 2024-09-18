@@ -42,34 +42,26 @@ CC=gcc make && sudo make install
 
 ## Usage:
 
-### Creating hash map
+### Creating a hash map
 
-Interface
-```c
-mmr_map_t* 
-mmr_map_create(uint32_t initial_capacity);
-
-```
-
-Usage
-```c
-mmr_map_t* hash_map = mmr_map_create(100);
-
-```
-
-Example
 ```c
 #include <stdio.h>
 #include <murmurrobinmap.h>
 
 int
 main(int argc, char** argv) {
-  mmr_map_t* hash_map = mmr_map_create(100);
+  mmr_map_t hash_map = {
+      .count = 0,
+      .capacity = 100,
+      .entries = NULL
+  };
 
-  printf("Created hash map with capacity %d\n", hash_map->capacity);
+  mrrmap_alloc(&hash_map);
+
+  printf("Created hash map with capacity %d\n", hash_map.capacity);
   // Created hash map with capacity 100;
 
-  mmr_map_free(hash_map);
+  mmr_map_free(&hash_map);
   return 0;
 }
 
@@ -77,25 +69,6 @@ main(int argc, char** argv) {
 
 
 ### Inserting an entry
-
-Interface
-
-```c
-void
-mmr_map_insert_entry(mmr_map_t* mmr_map, char* key, void* value);
-
-```
-
-Usage
-```c
-mmr_map_insert_entry(hash_map, "key", "value");
-
-my_struct* s = malloc(sizeof(my_struct));
-s->something = 42;
-mmr_map_insert_entry(hash_map, "my_struct", s);
-```
-
-Example
 ```c
 #include <stdio.h>
 #include <murmurrobinmap.h>
@@ -103,18 +76,25 @@ Example
 
 typedef struct {
   uint32_t answer;
-} my_struct;
+} my_struct_t;
 
 int
 main(int argc, char** argv) {
-  mmr_map_t* hash_map = mmr_map_create(100);
+  mmr_map_t hash_map = {
+      .count = 0,
+      .capacity = 100,
+      .entries = NULL
+  };
 
-  my_struct* s = malloc(sizeof(my_struct));
-  s->answer = 42;
+  mrrmap_alloc(&hash_map);
 
-  mmr_map_insert_entry(hash_map, "answer", my_struct);
+  my_struct_t* question = {
+    .answer = 42
+  }
 
-  mmr_map_free(hash_map);
+  mmr_map_insert_entry(&hash_map, "answer", &question);
+
+  mmr_map_free(&hash_map);
   return 0;
 }
 
@@ -123,23 +103,6 @@ main(int argc, char** argv) {
 
 ### Retrieving an entry
 
-Interface
-
-```c
-void*
-mmr_map_get_entry(mmr_map_t* mmr_map, char* key);
-
-```
-
-Usage
-```c
-char* value = (char*)mmr_map_get_entry(hash_map, "key");
-
-my_struct* struct_value = (my_struct*)mmr_map_get_entry(hash_map, "my_struct");
-
-```
-
-Example
 ```c
 #include <stdio.h>
 #include <murmurrobinmap.h>
@@ -151,23 +114,29 @@ typedef struct {
 
 int
 main(int argc, char** argv) {
-  mmr_map_t* hash_map = mmr_map_create(100);
+  mmr_map_t hash_map = {
+      .count = 0,
+      .capacity = 100,
+      .entries = NULL
+  };
 
-  my_struct* s = malloc(sizeof(my_struct));
-  s->answer = 42;
+  mrrmap_alloc(&hash_map);
 
-  mmr_map_insert_entry(hash_map, "answer", my_struct);
+  my_struct_t question = {
+    .answer = 42
+  }
+
+  mmr_map_insert_entry(&hash_map, "answer", &my_struct);
 
   ...
 
-  my_struct* s2 = mmr_map_get_entry(hash_map, "answer");
-  if (s2 != NULL) {
-    printf("This is an answer on ultimate question of life, the universe, and everything: %d\n", s2->answer);
+  my_struct* value = mmr_map_get_entry(&hash_map, "answer");
+  if (value != NULL) {
+    printf("This is an answer on ultimate question of life, the universe, and everything: %d\n", value->answer);
     // This is an answer on ultimate question of life, the universe, and everything: 42
   }
 
-  free(s);
-  mmr_map_free(hash_map);
+  mmr_map_free(&hash_map);
   return 0;
 }
 
