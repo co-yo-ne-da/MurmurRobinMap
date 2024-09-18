@@ -91,17 +91,14 @@ robin_hood_insert(mmr_map_t* mmr_map, char* key, void* value) {
 }
 
 
-static inline void
+static inline int64_t
 __attribute__((always_inline))
 mmr_map_resize(mmr_map_t* mmr_map) {
     register uint32_t legacy_capacity = mmr_map->capacity;
     register uint32_t new_capacity = legacy_capacity * GROW_FACTOR;
 
     entry_t* new_entries = calloc(new_capacity, sizeof(entry_t));
-    if (new_entries == NULL) {
-        perror(ALLOC_ERROR);
-        exit(1);
-    }
+    if (new_entries == NULL) return -1;
 
     entry_t* legacy_entries = mmr_map->entries;
     mmr_map->entries = new_entries;
@@ -113,6 +110,7 @@ mmr_map_resize(mmr_map_t* mmr_map) {
     }
 
     free(legacy_entries);
+    return new_capacity;
 }
 
 
@@ -132,18 +130,10 @@ mmr_map_find_index(mmr_map_t* mmr_map, char* key) {
 }
 
 
-mmr_map_t*
-mmr_map_create(uint32_t initial_capacity) {
-    mmr_map_t* map = malloc(sizeof(mmr_map_t));
-    if (map == NULL) {
-        perror(ALLOC_ERROR);
-        exit(1);
-    }
-
+void
+mmr_map_alloc(mmr_map_t* map) {
     map->count = 0;
-    map->capacity = initial_capacity;
-    map->entries = calloc(initial_capacity, sizeof(entry_t));
-    return map;
+    map->entries = calloc(map->capacity, sizeof(entry_t));
 }
 
 
@@ -151,9 +141,7 @@ void
 mmr_map_free(mmr_map_t* mmr_map) {
     free(mmr_map->entries);
     mmr_map->entries = NULL;
-    free(mmr_map);
 }
-
 
 void
 mmr_map_insert_entry(mmr_map_t* mmr_map, char* key, void* value) {

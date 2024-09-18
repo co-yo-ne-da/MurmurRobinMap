@@ -31,8 +31,8 @@ typedef struct HashMap {
 uint32_t
 murmurhash3(char* key, uint32_t len, uint32_t seed);
 
-mmr_map_t* 
-mmr_map_create(uint32_t initial_capacity);
+void
+mmr_map_alloc(mmr_map_t* mmr_map);
 
 void 
 mmr_map_free(mmr_map_t* mmr_map);
